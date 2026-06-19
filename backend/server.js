@@ -12,7 +12,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["https://your-frontend-name.vercel.app", "http://localhost:5000"],
+    origin: ["https://crisp-url-shortener.vercel.app", "http://localhost:5000"],
     credentials: true,
   }),
 );
@@ -20,11 +20,9 @@ app.use(
 app.use(express.json());
 const PORT = process.env.PORT || 5000;
 
-// 1. PLACE API ROUTES FIRST
 app.use("/api/v1/urls", urlRoutes);
 app.get("/:shortCode", urlController.handleRedirect);
 
-// 2. PLACE STATIC / FILE HANDLING LAST
 app.use(express.static(path.join(__dirname, "../frontend")));
 
 app.get("/", (req, res) => {

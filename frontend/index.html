@@ -278,7 +278,6 @@
       </div>
     </footer>
 
-    <!-- INTERACTIVE LAYER: FORM SHORTENER HANDLER -->
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const form = document.getElementById("shorten-form");
@@ -289,7 +288,6 @@
         form.addEventListener("submit", async (e) => {
           e.preventDefault();
 
-          // CRITICAL FIX: Fetch the value INSIDE the event handler right when submitted
           const longUrlInput = document.getElementById("longUrl");
           const longUrl = longUrlInput ? longUrlInput.value.trim() : "";
 
@@ -298,7 +296,6 @@
             return;
           }
 
-          // Visual loading feedback
           const submitBtn = form.querySelector('button[type="submit"]');
           const originalBtnText = submitBtn.innerHTML;
           submitBtn.disabled = true;
@@ -309,8 +306,7 @@
               window.location.hostname === "localhost" ||
               window.location.hostname === "127.0.0.1"
                 ? ""
-                : "https://your-backend-name.onrender.com"; // You will get this URL from Render in Step 2
-
+                : "https://crispurl-shortener-backend.onrender.com";
             const response = await fetch(`${BACKEND_URL}/api/v1/urls/shorten`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -320,14 +316,11 @@
             const data = await response.json();
 
             if (response.ok) {
-              // Set the shortened URL text input value
               shortUrlResult.value = data.shortUrl;
 
-              // Reveal the result container box smoothly
               resultBox.classList.remove("hidden");
               resultBox.scrollIntoView({ behavior: "smooth" });
             } else {
-              // This will now tell you exactly WHY the backend sent a 400 (e.g., Invalid URL format)
               console.error("Backend Rejected Request:", data);
               alert(
                 `Error: ${data.error || "Something went wrong on the server"}`,
@@ -337,13 +330,11 @@
             console.error("Frontend Fetch Error:", error);
             alert("Failed to connect to the backend server.");
           } finally {
-            // Reset button state back to original
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnText;
           }
         });
 
-        // Copy Link Action Handler
         copyBtn.addEventListener("click", async () => {
           if (!shortUrlResult.value) return;
 
