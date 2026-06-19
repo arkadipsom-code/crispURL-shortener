@@ -10,7 +10,6 @@ async function handleShortenUrl(req, res) {
 
     try {
       let parsedUrl = new URL(longUrl);
-
       if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
         return res
           .status(400)
@@ -20,14 +19,20 @@ async function handleShortenUrl(req, res) {
       return res.status(400).json({ error: "Invalid URL format!" });
     }
 
-    const shortCode = await urlService.shortenUrl(longUrl);
+    let urlRecord = await urlService.findUrlByLongUrl(longUrl);
+
+    if (!urlRecord) {
+      urlRecord = await urlService.createNewUrl(longUrl);
+    }
+
     const baseUrl =
       process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+
     return res.status(200).json({
       message: "URL shortened successfully",
-      longUrl,
-      shortCode,
-      shortUrl: `${baseUrl}/${shortCode}`,
+      longUrl: urlRecord.long_url,
+      shortCode: urlRecord.short_code,
+      shortUrl: `${baseUrl}/${urlRecord.short_code}`,
     });
   } catch (error) {
     console.error("Error occurred while shortening URL:", error);
@@ -38,16 +43,18 @@ async function handleShortenUrl(req, res) {
 async function handleRedirect(req, res) {
   try {
     const { shortCode } = req.params;
-    const longUrl = await urlService.getLongUrl(shortCode);
+    const urlRecord = await urlService.findUrlByShortCode(shortCode);
 
-    if (!longUrl) {
-      return res.status(404).json({ error: "URL not found" });
+    if (!urlRecord) {
+      return res.status(404).send("<h1>CrispURL Not Found</h1>");
     }
 
-    return res.redirect(longUrl);
+    await urlService.incrementClickCount(urlRecord.id);
+
+    return res.redirect(urlRecord.long_url);
   } catch (error) {
     console.error("Error occurred while redirecting URL:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).send("Internal server error");
   }
 }
 
